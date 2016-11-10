@@ -1,8 +1,6 @@
 #!/usr/bin/awk -f
 # Reading DataLab's ASC files and convert them to R files.
 #
-# Sebastian Bachmann, 2016
-#
 # The documentation of the ASC file format was taken from:
 #   http://datalab.epina.at/helpeng/asc_format.htm
 #
@@ -13,6 +11,27 @@
 # * Feature names seperated by "any ASCII character below 32" is not parsed correctly
 # * We assume all files have CRLF, but you can change that per file
 # * We do not know what the FLAG_NOMINAL does, we only have test data with FALSE
+#
+#
+# Copyright (c) 2016 Sebastian Bachmann
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+# DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+# THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 BEGIN {
     # Debugging flag for more output
