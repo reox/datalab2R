@@ -11,9 +11,17 @@
 # Known Limitations are:
 # * Feature Names with escaped quotes are not parsed correctly
 # * Feature names seperated by "any ASCII character below 32" is not parsed correctly
+# * We assume all files have CRLF, but you can change that per file
 # * We do not know what the FLAG_NOMINAL does, we only have test data with FALSE
 
 BEGIN {
+    # Debugging flag for more output
+    DEBUG = 1;
+
+    # Input files are probably all CRLF, so set it and forget it...
+    RS = "\r\n"
+    ORS = "\n"
+
     description = "";
     ncols = 0;
     nrows = 0;
@@ -35,12 +43,14 @@ BEGIN {
     FLAG_NOMINAL = 3;
 
     # Constant for NaN
-    nan = "###"
+    NA = "###"
 
     # Some more flags for our state machine
     col_cols = 0;
     col_rows = 0;
     col_cur = 0;
+    col_extra = 0;
+    printheader = 1;
 
     _ord_init();
 }
@@ -94,6 +104,14 @@ function parseBoolean(param, flag) {
     parseBoolean($2, FLAG_FEATNAMES);
     parseBoolean($3, FLAG_OBJNAMES);
     parseBoolean($4, FLAG_NOMINAL);
+
+    # Calculate extra columns
+    if (flags[FLAG_CLASSINFO]) {
+        col_extra++;
+    }
+    if (flags[FLAG_FEATNAMES]) {
+        col_extra++;
+    }
     next;
 }
 
@@ -111,8 +129,30 @@ function parseBoolean(param, flag) {
     next;
 }
 
+(col_cols == ncols && printheader == 1) {
+    # The header has been parsed, print it
 
-(col_cols == ncols){
+    # The headers in R have always quotes (?)
+    for (i in headers){
+        if (headers[i]~/"/){
+            printf "%s", headers[i];
+        }
+        else {
+            printf "\"%s\"", headers[i];
+        }
+        if (i < length(headers)) {
+            printf " "
+        }
+    }
+    printf "\n"
+
+    printheader = 0;
+}
+
+
+(col_cols == ncols && printheader == 0){
+    # See http://web.archive.org/web/20120531065332/http://backreference.org/2010/04/17/csv-parsing-with-awk/
+    # for the Idea how to parse CSV
     c=0
     while($0) {
         match($0,/[ \t]*"[^"]*"[ \t]*|[^ \t]*/)
@@ -121,27 +161,79 @@ function parseBoolean(param, flag) {
             $0 = substr($0, 2);
         }
         else{
-            f=substr($0,RSTART,RLENGTH)             # save what matched in f
-            gsub(/^ *"?|"? *,$/,"",f)               # remove extra stuff
-            print "Field " ++c " is " f
-            $0=substr($0,RLENGTH+1)                 # "consume" what matched
+            f=substr($0,RSTART,RLENGTH)
+            # TODO trailing spaces and tabs are not removed
+            gsub(/^ *"?|"? *,$/,"",f)
+            # Save current field
+            cur_row[col_cur] = f;
+            col_cur++;
+            # Move over
+            $0=substr($0,RLENGTH+1)
         }
     }
-    next;
 }
 
+(col_cur == col_cols + col_extra){
+    # We collected a full row
+    col_rows++;
+    col_cur = 0;
 
-# Debugging only...
+    c_idx = 0;
+
+    # Assuming that row attribute is first,
+    # then the row name
+    if (flags[FLAG_CLASSINFO]) {
+        # We delete the first entry in the array
+        delete cur_row[0];
+        c_idx++;
+    }
+    if (flags[FLAG_OBJNAMES]) {
+        # The first item is the rowname
+        if (cur_row[c_idx]~/"/) {
+            printf "%s ", cur_row[c_idx];
+        }
+        else {
+            printf "\"%s\" ", cur_row[c_idx];
+        }
+        delete cur_row[c_idx];
+    }
+
+    c_idx = 0;
+    for (i in cur_row) {
+        # Check for NA value
+        if (cur_row[i] == NA){
+            printf "NA";
+        }
+        else {
+            printf "%s", cur_row[i];
+        }
+        if (c_idx < nrows) {
+            printf " ";
+        }
+        delete cur_row[i];
+        c_idx++;
+    }
+    printf "\n";
+}
+
 END {
-    print "DESCRIPTION " description;
-    print "NCOLS " ncols;
-    print "NROWS " nrows;
-    print "FLAG_CLASSINFO " flags[0];
-    print "FLAG_FEATNAMES " flags[1];
-    print "FLAG_OBJNAMES " flags[2];
-    print "FLAG_NOMINAL " flags[3];
+    if (col_rows != nrows) {
+        print FILENAME " (line " FNR "): ERROR: Expected "nrows" rows of data, got "col_rows > "/dev/stderr";
+    }
 
-    for (x in headers){
-        print headers[x];
+
+    # Debugging only...
+    if (DEBUG) {
+        print "DESCRIPTION " description > "/dev/stderr";
+        print "NCOLS " ncols > "/dev/stderr";
+        print "NROWS " nrows > "/dev/stderr";
+        print "FLAG_CLASSINFO " flags[0] > "/dev/stderr";
+        print "FLAG_FEATNAMES " flags[1] > "/dev/stderr";
+        print "FLAG_OBJNAMES " flags[2] > "/dev/stderr";
+        print "FLAG_NOMINAL " flags[3] > "/dev/stderr";
+
+        for (x in headers){
+            print headers[x] > "/dev/stderr";
+        }
     }
 }
