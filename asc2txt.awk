@@ -1,4 +1,4 @@
-#!/usr/bin/awk
+#!/usr/bin/awk -f
 # Reading DataLab's ASC files and convert them to R files.
 #
 # Sebastian Bachmann, 2016
