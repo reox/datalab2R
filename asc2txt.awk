@@ -16,7 +16,7 @@
 
 BEGIN {
     # Debugging flag for more output
-    DEBUG = 1;
+    DEBUG = 0;
 
     # Input files are probably all CRLF, so set it and forget it...
     RS = "\r\n"
