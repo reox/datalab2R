@@ -1,4 +1,4 @@
-Convert Datalab ASC to R ASCII table files
+Convert DataLab ASC to R ASCII table files
 ==========================================
 
 Used the definiton of Datalab's ASC format from here: [ASC File Format](http://datalab.epina.at/helpeng/asc_format.htm).
