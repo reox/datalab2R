@@ -9,7 +9,8 @@
 # This parser has probably some faults and limitations
 #
 # Known Limitations are:
-# * Header information with escaped quotes are not parsed correctly
+# * Feature Names with escaped quotes are not parsed correctly
+# * Feature names seperated by "any ASCII character below 32" is not parsed correctly
 # * We do not know what the FLAG_NOMINAL does, we only have test data with FALSE
 
 BEGIN {
@@ -32,6 +33,26 @@ BEGIN {
     FLAG_OBJNAMES = 2;
     # This Flag is not part of the online documentation but present in files
     FLAG_NOMINAL = 3;
+
+    # Constant for NaN
+    nan = "###"
+
+    # Some more flags for our state machine
+    col_cols = 0;
+    col_rows = 0;
+    col_cur = 0;
+
+    _ord_init();
+}
+
+# We need the ORD function, taken from
+# https://www.gnu.org/software/gawk/manual/html_node/Ordinal-Functions.html
+function _ord_init()
+{
+    for (i = 0; i <= 255; i++) {
+        t = sprintf("%c", i)
+        _ord_[t] = i
+    }
 }
 
 function parseBoolean(param, flag) {
@@ -73,9 +94,42 @@ function parseBoolean(param, flag) {
     parseBoolean($2, FLAG_FEATNAMES);
     parseBoolean($3, FLAG_OBJNAMES);
     parseBoolean($4, FLAG_NOMINAL);
-
     next;
 }
+
+(FNR > 4 && flags[FLAG_FEATNAMES] && ncols > col_cols) {
+    # We need to parse the header fields
+    # TODO we do not support the full range of seperators, not even SPACE!
+    # This is quite fatal but all our test data has tabs...
+    split($0, h, "\t", seps)
+    for (x in h) {
+        if (h[x] != "") {
+            headers[col_cols] = h[x];
+            col_cols++;
+        }
+    }
+    next;
+}
+
+
+(col_cols == ncols){
+    c=0
+    while($0) {
+        match($0,/[ \t]*"[^"]*"[ \t]*|[^ \t]*/)
+        if (RLENGTH == 0){
+            # Nothing matched, move on one char:
+            $0 = substr($0, 2);
+        }
+        else{
+            f=substr($0,RSTART,RLENGTH)             # save what matched in f
+            gsub(/^ *"?|"? *,$/,"",f)               # remove extra stuff
+            print "Field " ++c " is " f
+            $0=substr($0,RLENGTH+1)                 # "consume" what matched
+        }
+    }
+    next;
+}
+
 
 # Debugging only...
 END {
@@ -86,4 +140,8 @@ END {
     print "FLAG_FEATNAMES " flags[1];
     print "FLAG_OBJNAMES " flags[2];
     print "FLAG_NOMINAL " flags[3];
+
+    for (x in headers){
+        print headers[x];
+    }
 }
