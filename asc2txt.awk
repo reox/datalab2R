@@ -59,6 +59,15 @@ BEGIN {
     # Controls if there are names for each object, e.g. row
     FLAG_OBJNAMES = 2;
     # This Flag is not part of the online documentation but present in files
+    # It seems the flag does the following:
+    # At the end of the file, some rows are added with
+    # <VARTYPES>
+    # ... <1=X><2=Y>...
+    # </VARTYPES>
+    # e.g. key value pairs for non integer values.
+    # These values maps for the classinfo column,
+    # e.g. the classinfo is always an integer and with this information
+    # it can be mapped to chars.
     FLAG_NOMINAL = 3;
 
     # Constant for NaN
@@ -148,6 +157,15 @@ function parseBoolean(param, flag) {
     next;
 }
 
+(col_rows == nrows && flags[FLAG_NOMINAL]) {
+    # Read now three lines of the nominal value declerator
+    # TODO are there always three rows?
+    # Probably should parse the XML field...
+    next;
+    next;
+    next;
+}
+
 (col_cols == ncols && printheader == 1) {
     # The header has been parsed, print it
 
@@ -234,6 +252,7 @@ function parseBoolean(param, flag) {
     }
     printf "\n";
 }
+
 
 END {
     if (col_rows != nrows) {
