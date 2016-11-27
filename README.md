@@ -3,7 +3,7 @@ Convert DataLab ASC to R ASCII table files
 
 Used the definiton of Datalab's ASC format from here: [ASC File Format](http://datalab.epina.at/helpeng/asc_format.htm).
 
-This definition seems to be not complete, at least in my files there is a `nominal variables` flag which is set to `FALSE`
+This definition seems to be not complete, at least in my files there is a `nominal variables` flag, where there is no documentation for it.
 
 Usage
 -----
