@@ -157,7 +157,8 @@ function parseBoolean(param, flag) {
         else {
             printf "\"%s\"", headers[i];
         }
-        if (i < length(headers)) {
+
+        if (int(i) < length(headers)) {
             printf " "
         }
     }
