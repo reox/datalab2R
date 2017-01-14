@@ -5,6 +5,9 @@ Used the definiton of Datalab's ASC format from here: [ASC File Format](http://d
 
 This definition seems to be not complete, at least in my files there is a `nominal variables` flag, where there is no documentation for it.
 
+The conversion of the `row attributes` is not perfect. We just create a new column called `row.attr` and put it in there.
+Optimal would be a flag to add it or not, depending on your usecase. Sometimes this column contains useful data, sometimes not.
+
 Usage
 -----
 
