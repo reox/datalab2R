@@ -162,6 +162,11 @@ function parseBoolean(param, flag) {
             printf " "
         }
     }
+
+    if (flags[FLAG_CLASSINFO]) {
+        # We want to store the row attribute in a special column called "row.attr"
+        printf " \"row.attr\"";
+    }
     printf "\n"
 
     printheader = 0;
@@ -198,10 +203,14 @@ function parseBoolean(param, flag) {
 
     c_idx = 0;
 
+    rowattr = "";
+
     # Assuming that row attribute is first,
     # then the row name
     if (flags[FLAG_CLASSINFO]) {
-        # We delete the first entry in the array
+        # We want to store the row attribute in a special column called "row.attr"
+        # which is actually the last item, so just jump over it for now
+        rowattr = cur_row[0];
         delete cur_row[0];
         c_idx++;
     }
@@ -230,6 +239,11 @@ function parseBoolean(param, flag) {
         }
         delete cur_row[i];
         c_idx++;
+    }
+
+    if (flags[FLAG_CLASSINFO]) {
+        # we saved the row attr beforehand
+        printf " %s", rowattr;
     }
     printf "\n";
 }
